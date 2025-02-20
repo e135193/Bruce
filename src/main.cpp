@@ -10,6 +10,8 @@
 #include "core/powerSave.h"
 #include "esp_task_wdt.h"
 
+#include <Audio.h>
+
 BruceConfig bruceConfig;
 
 StartupApp startupApp;
@@ -47,7 +49,7 @@ void __attribute__((weak)) taskInputHandler(void *parameter) {
       PrevPagePress=false;
       touchPoint.pressed=false;
       InputHandler();
-      vTaskDelay(pdMS_TO_TICKS(10));
+      vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 // Public Globals Variables
@@ -114,7 +116,6 @@ uint8_t buff[1024] = {0};
 #include "modules/rf/rf.h"  // for initCC1101once
 #include "modules/bjs_interpreter/interpreter.h" // for JavaScript interpreter
 
-
 /*********************************************************************
 **  Function: begin_storage
 **  Config LittleFS and SD storage
@@ -166,7 +167,6 @@ void setup_gpio() {
 *********************************************************************/
 void begin_tft(){
   tft.setRotation(bruceConfig.rotation); //sometimes it misses the first command
-  tft.invertDisplay(bruceConfig.colorInverted);
   tft.setRotation(bruceConfig.rotation);
   tftWidth = tft.width();
   #ifdef HAS_TOUCH
@@ -187,11 +187,11 @@ void boot_screen() {
   tft.setTextColor(bruceConfig.priColor, TFT_BLACK);
   tft.setTextSize(FM);
   tft.drawPixel(0,0,TFT_BLACK);
-  tft.drawCentreString("Bruce", tftWidth / 2, 10, 1);
+  tft.drawCentreString("Bruce", tftWidth / 2, 10, SMOOTH_FONT);
   tft.setTextSize(FP);
-  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, 1);
+  tft.drawCentreString(BRUCE_VERSION, tftWidth / 2, 25, SMOOTH_FONT);
   tft.setTextSize(FM);
-  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, 1); // will draw outside the screen on non touch devices
+  tft.drawCentreString("PREDATORY FIRMWARE", tftWidth / 2, tftHeight+2, SMOOTH_FONT); // will draw outside the screen on non touch devices
 }
 
 /*********************************************************************
@@ -335,13 +335,14 @@ void setup() {
 
 #ifndef USE_TFT_eSPI_TOUCH
   // This task keeps running all the time, will never stop
-  xTaskCreate(
+  xTaskCreatePinnedToCore(
         taskInputHandler,   // Task function
         "InputHandler",     // Task Name
         4096,               // Stack size
         NULL,               // Task parameters
         2,                  // Task priority (0 to 3), loopTask has priority 2.
-        &xHandle            // Task handle (not used)
+        &xHandle,            // Task handle (not used)
+        1
     );
 #endif
 
@@ -396,6 +397,7 @@ void loop() {
   tft.fillScreen(bruceConfig.bgColor);
   bruceConfig.fromFile();
 
+  pinMode(48, OUTPUT);
 
   while(1){
     if(interpreter_start) goto END;
@@ -437,8 +439,7 @@ void loop() {
     // update battery and clock once every 30 seconds
     // it was added to avoid delays in btns readings from Core and improves overall performance
     if(millis()-clock_update>30000) {
-      uint8_t bat = getBattery();
-      drawBatteryStatus(bat);
+      drawBatteryStatus();
       if (clock_set) {
         #if defined(HAS_RTC)
           _rtc.GetTime(&_time);
@@ -461,6 +462,7 @@ void loop() {
   END:
   delay(1);
 }
+
 #else
 
 // alternative loop function for headless boards
