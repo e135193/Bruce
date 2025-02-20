@@ -17,7 +17,7 @@ bool playAudioFile(FS* fs, String filepath) {
   if(!source) return false;
 
   AudioOutputI2S* audioout = new AudioOutputI2S();  // https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputI2S.cpp#L32
-  audioout->SetPinout(BCLK, WCLK, DOUT, MCLK);
+  audioout->SetPinout(I2S_BCLK, I2S_WCLK, I2S_DOUT, I2S_MCLK);
 
   AudioGenerator* generator = NULL;
 
@@ -75,7 +75,7 @@ bool playAudioRTTTLString(String song) {
   if(song=="") return false;
 
   AudioOutputI2S* audioout = new AudioOutputI2S();
-  audioout->SetPinout(BCLK, WCLK, DOUT, MCLK);
+  audioout->SetPinout(I2S_BCLK, I2S_WCLK, I2S_DOUT, I2S_MCLK);
 
   AudioGenerator* generator = new AudioGeneratorRTTTL();
 
@@ -108,7 +108,7 @@ bool tts(String text){
   if(text=="") return false;
 
   AudioOutputI2S* audioout = new AudioOutputI2S();
-  audioout->SetPinout(BCLK, WCLK, DOUT, MCLK);
+  audioout->SetPinout(I2S_BCLK, I2S_WCLK, I2S_DOUT, I2S_MCLK);
 
   // https://github.com/earlephilhower/ESP8266SAM/blob/master/examples/Speak/Speak.ino
   audioout->begin();
@@ -139,7 +139,7 @@ void playTone(unsigned int frequency, unsigned long duration, short waveType)
   AudioGeneratorWAV* wav;
   AudioFileSourceFunction* file;
   AudioOutputI2S* out = new AudioOutputI2S();
-  out->SetPinout(BCLK, WCLK, DOUT, MCLK);
+  out->SetPinout(I2S_BCLK, I2S_WCLK, I2S_DOUT, I2S_MCLK);
 
   file = new AudioFileSourceFunction( duration/1000.0);  // , 1, 44100
   //

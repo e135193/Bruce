@@ -10,6 +10,8 @@
 #include "modules/others/clicker.h"
 #include "modules/others/bad_usb.h"
 #include "modules/others/ibutton.h"
+#include "modules/others/webRadio.h"
+#include "modules/others/ds18b20.h"
 
 void OthersMenu::optionsMenu() {
     options = {
@@ -23,16 +25,18 @@ void OthersMenu::optionsMenu() {
         {"USB Keyboard", [=]() { usb_keyboard(); }},
     #endif
     #ifdef USB_as_HID
-        {"Clicker",       [=]() { clicker_setup(); }},
+        {"Clicker",      [=]() { clicker_setup(); }},
     #endif
     #ifndef LITE_VERSION
         {"Openhaystack", [=]() { openhaystack_setup(); }},
     #endif
     #if !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE) && !defined(ARDUINO_M5STACK_ARDUINO_M5STACK_CORE2)
-        {"Interpreter", [=]()  { run_bjs_script(); }},
+        {"Interpreter",  [=]()  { run_bjs_script(); }},
     #endif
-        {"iButton",        [=]() { setup_ibutton(); }},
+        {"iButton",      [=]() { setup_ibutton(); }},
         {"Timer",        [=]() { Timer(); }},
+        {"Temperature",  [=]() { DS18B20(); }},
+        {"Web Radio",    [=]() { WebRadio_menu(); }},
         {"Main Menu",    [=]() { backToMenu(); }},
     };
 

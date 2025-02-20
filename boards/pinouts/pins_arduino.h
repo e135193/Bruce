@@ -24,4 +24,6 @@
 #include "ESP-General.h"
 #elif SMOOCHIEE_BOARD
 #include "smoochiee-board.h"
+#elif BRUCE
+#include "bruce-hw.h"
 #endif

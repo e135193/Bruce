@@ -17,12 +17,12 @@
 
 extern const unsigned char ImageData[768];
 
-// static SemaphoreHandle_t xSemaphore = NULL;
-// static SemaphoreHandle_t start_dis = NULL;
+static SemaphoreHandle_t xSemaphore = NULL;
+static SemaphoreHandle_t start_dis = NULL;
 
 static uint16_t posData = 160;
-// static int8_t i2s_readraw_buff[2048];
-// static uint8_t fft_dis_buff[241][128] = {0};
+static int8_t i2s_readraw_buff[2048];
+static uint8_t fft_dis_buff[241][128] = {0};
 
 static int8_t *_new_i2s_readraw_buff = nullptr;
 static uint8_t **_new_fft_dis_buff = nullptr;
@@ -96,6 +96,9 @@ const unsigned char ImageData[768] = {
 };
 
 int rgb(unsigned char r, unsigned char g, unsigned char b) {
+    if (r < 0 || 255 < r || g < 0 || 255 < g || b < 0 || b > 255)
+        return -1;
+
     int result;
 
     //int red = r * 31 / 255;
@@ -193,12 +196,12 @@ bool InitI2SMicroPhone()
 {
     esp_err_t err = ESP_OK;
     i2s_config_t i2s_config = {
-        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_PDM),
+        .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX ),
         // .sample_rate = 44100,
         .sample_rate = 48000,
         .bits_per_sample =
             I2S_BITS_PER_SAMPLE_16BIT, // is fixed at 12bit, stereo, MSB
-        .channel_format = I2S_CHANNEL_FMT_ALL_RIGHT,
+        .channel_format = I2S_CHANNEL_FMT_ALL_LEFT,
         #if ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 1, 0)
             .communication_format =
                 I2S_COMM_FORMAT_STAND_I2S, // Set the format of the communication.
@@ -214,10 +217,10 @@ bool InitI2SMicroPhone()
     #if (ESP_IDF_VERSION > ESP_IDF_VERSION_VAL(4, 3, 0))
         pin_config.mck_io_num = I2S_PIN_NO_CHANGE;
     #endif
-    pin_config.bck_io_num = I2S_PIN_NO_CHANGE;
-    pin_config.ws_io_num = PIN_CLK;
+    pin_config.bck_io_num = I2S_BCLK;
+    pin_config.ws_io_num = I2S_WCLK;
     pin_config.data_out_num = I2S_PIN_NO_CHANGE;
-    pin_config.data_in_num = PIN_DATA;
+    pin_config.data_in_num = I2S_DIN;
 
     err += i2s_driver_install(I2S_NUM_0, &i2s_config, 0, NULL);
     err += i2s_set_pin(I2S_NUM_0, &pin_config);
